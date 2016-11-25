@@ -2,6 +2,7 @@ package com.bosch.bsj.srini.titbits.counter;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+// BRIDGE and FACTORY
 public class CounterFactory {
 
 	static enum CounterType {

@@ -9,45 +9,47 @@ import java.util.concurrent.Future;
 
 import com.bosch.bsj.srini.titbits.counter.CounterFactory.CounterType;
 
-
-
 public class TestCounter {
+	private static List<Future<?>> futures = new ArrayList<Future<?>>();
+	
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
 
-		final Counter c = CounterFactory.createCounter(CounterType.ATOMIC);
-		int poolSize = 3;
-		int jobCount = 3;
-		Runnable r = () -> {
-			for (int i = 0; i < 1000; i++) {
-				c.increment();
+		for (CounterType counterType : CounterType.values()) {
+			futures.clear();
+			final Counter c = CounterFactory.createCounter(counterType);
+
+			ExecutorService pool = Executors.newFixedThreadPool(3);
+			for (int i = 0; i < 3; i++) {
+				Future<?> aFuture = pool.submit(() -> {
+					for (int j = 0; j < 1000; j++) {
+						c.increment();
+					}
+				});
+				futures.add(aFuture);
 			}
-		};
 
-		List<Future<?>> futures = new ArrayList<Future<?>>();
+			//waitTillTasksDoneInBlockingWay();
+			waitTillTasksDoneInNonBlockingWay();			
 
-		ExecutorService pool = Executors.newFixedThreadPool(poolSize);
-		for (int i = 0; i < jobCount; i++) {
-			Future<?> aFuture = pool.submit(r);
-			futures.add(aFuture);
+			System.out.print(counterType + ":- All tasks complete...");
+			pool.shutdown();
+			System.out.println("C Value :" + c.value());
 		}
 		
-		// Blocking way
-		//for(Future<?> future: futures)
-		//	  future.get();
 		
-		// Non-Blocking way
+	}
+	private void waitTillTasksDoneInBlockingWay() throws InterruptedException, ExecutionException{
+		 for(Future<?> future: futures)
+		   future.get();
+	}
+	
+	private static void waitTillTasksDoneInNonBlockingWay(){
 		boolean allDone;
-		do{
+		do {
 			allDone = true;
-			for(Future<?> future: futures){
+			for (Future<?> future : futures) {
 				allDone &= future.isDone();
 			}
-		}while(!allDone);
-		
-		
-		System.out.println("All tasks are complete!");
-		pool.shutdown();
-
-		System.out.println("C value :" + c.value());
+		} while (!allDone);
 	}
 }
