@@ -17,22 +17,22 @@ public class CheckAndModifyMap {
 		CHECK_PUT, REPEAT_CHECK_REPLACE, COMPUTE_IF
 	};
 
-	static Map<String, BigDecimal> map = new ConcurrentHashMap<String, BigDecimal>();
+	static Map<String, BigDecimal> movieViewsMap = new ConcurrentHashMap<String, BigDecimal>();
 
 	public static void main(String[] args) throws InterruptedException {
 
 		for (ComputationStrategy aStrategy : ComputationStrategy.values()) {
 			
 			executorService = Executors.newFixedThreadPool(3);
-			map.put(STAR_WARS, BigDecimal.ZERO);
+			movieViewsMap.put(STAR_WARS, BigDecimal.ZERO);
 			
-			updateViewsInParallel(map, aStrategy);
+			updateViewsInParallel(movieViewsMap, aStrategy);
 
 			executorService.shutdown();
 
 			try {
 				while (!executorService.awaitTermination(1, TimeUnit.SECONDS));
-				System.out.println(map);
+				System.out.println(movieViewsMap);
 
 			} catch (InterruptedException e) {
 
